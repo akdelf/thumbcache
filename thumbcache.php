@@ -1,36 +1,41 @@
 <?php
 
-define('IMGPATH', 'pub/images'); //папка где лежат картинки
-define('IMGCACHE', 'pub/images/preview/');
 
 
-function autothumb($src, $width, $height, $type = 'crop') {
+/*
+*
+*/
+function thumbcache($file, $width, $height, $type = 'crop') {
 
-	if (!file_exists($file)) return '';
+	
+	$pathfile = IMGPATH.$file;
+	
+	if (!file_exists($pathfile))
+		return '';
 
-	$file = new fileinfo($src);
-	$newf = $file->name.'_'.$width.'_'.$height.'.'.$file->ext;
+	$newfile = $width.'/'.$height.'/'.$file;
 
-	$dir = dirname($file);
-	$newdir = IMGCACHE.str_replace(IMGPATH, '', $dir);
-	$newf = $newdir.$newf;
+	$newf = IMGCACHE.$newfile;
+	$link = IMGLINK.$newfile;
 
-	if (file_exists($newf) and filectime($newf) > filectime($src))
-		return $link;
+	/*if (file_exists($newf) and filectime($newf) > filectime($src))
+		return $link;*/
+	
+	$newdir = dirname($newf);
 
 	if (!is_dir($newdir)){
 		if (!mkdir($newdir, 0775, True))
 			return False;
-		}
 	}
 
 
-	if (class_exists('Imagick'))
-		return autothumb_im();
-	
+	if (class_exists('Imagick')) # Imagick
+		if (thumbcache_im($pathfile, $newf, $width, $height, $type))
+			return $link;
 
-	if(extension_loaded('gd'))
-		return autothumb_gd();
+	if (extension_loaded('gd')) # gd
+		if (thumbcache_gd($pathfile, $newf, $width, $height, $type))
+			return $link;
 
 	return '';
 
@@ -38,53 +43,52 @@ function autothumb($src, $width, $height, $type = 'crop') {
 		
 
 
-	/*
-	*
-	*/
-	function autothumb_im() {
+/*
+*
+*/
+function thumbcache_im($src, $newf, $width, $height, $type) {
 		
-		$im = new Imagick();
+	$im = new Imagick();
 
-		if ($type == 'crop')
-			$im->cropThumbnailImage($width, $height);
-		elseif ($type == 'fit')
-			$im->thumbnailImage($width, $height, true);
-		elseif ($type == 'proportion') {	
-			$m_width = (float) $width;
-			$m_height = (float) $height;
-			$curr_width = $im->getImageWidth();
-			$curr_height = $im->getImageHeight();
-			if (($m_width < $curr_width ) or ($m_height < $curr_height)){
-				$w_k = $curr_width/$m_width;
-				$h_k = $curr_height/$m_height;
-				if ($w_k > $h_k){
-					$new_width = $m_width;
-					$new_height = $curr_height/$w_k;
-				}
-				else {
-					$new_width = $curr_width/$h_k;
-					$new_height = $m_height;
-				}
-					$im->resizeImage($new_width, $new_height, imagick::FILTER_LANCZOS, 1); 
+	$im->readImage($src);
+
+	if ($type == 'crop')
+		$im->cropThumbnailImage($width, $height);
+	elseif ($type == 'fit')
+		$im->thumbnailImage($width, $height, true);
+	elseif ($type == 'proportion') {	
+		$m_width = (float) $width;
+		$m_height = (float) $height;
+		$curr_width = $im->getImageWidth();
+		$curr_height = $im->getImageHeight();
+		if (($m_width < $curr_width ) or ($m_height < $curr_height)){
+			$w_k = $curr_width/$m_width;
+			$h_k = $curr_height/$m_height;
+			if ($w_k > $h_k){
+				$new_width = $m_width;
+				$new_height = $curr_height/$w_k;
 			}
-		}	
-
-
-
-		if ($im->writeImage($dest))
-			return $link;
-
-		return  '';
-
-
+			else {
+				$new_width = $curr_width/$h_k;
+				$new_height = $m_height;
+			}
+			$im->resizeImage($new_width, $new_height, imagick::FILTER_LANCZOS, 1); 
+		}
 	}	
 
 
-	function autothumb_gd() {
-	
-	}		
+	if ($im->writeImage($newf))
+		return True;
+
+	return  False;
 
 
+}	
 
-}
+
+function thumbcache_gd($src, $newf, $width, $height) {
+	return False;
+}		
+
+
 
