@@ -1,26 +1,37 @@
 <?php
 
 
-
-/*
+/**
+*
 *
 */
 function thumbcache($file, $width, $height, $type = 'crop') {
 
+	/**
+	* $_SERVER['DOCUMENT_ROOT']
+	* $_SERVER['HTTP_HOST']
+	*/	
 	
-	$pathfile = IMGPATH.$file;
-	
-	if (!file_exists($pathfile))
+	if (substr($file, 0, 4) == 'http') # http file
+		$newfile = str_replace('http://', '', $newfile);
+	elseif (!file_exists($file)) # local file
 		return '';
 
-	$newfile = $width.'/'.$height.'/'.$file;
+	$newfile = $width.'/'.$height.'/'.md5($file);	
 
-	$newf = IMGCACHE.$newfile;
-	$link = IMGLINK.$newfile;
+	if (defined('IMGCACHE')) {
+		if (substr($file, 0, 4) == 'http')
+			$newf = IMGCACHE.$newfile;
+	}	
 
-	/*if (file_exists($newf) and filectime($newf) > filectime($src))
-		return $link;*/
+	if (defined('IMGLINK'))
+		$result = IMGLINK.$newfile; # return link to preview
+	else
+		$result = $newf; # return path to thumbnail file
 	
+	if (file_exists($newf) and filectime($newf) > filectime($file))
+		return $result;
+
 	$newdir = dirname($newf);
 
 	if (!is_dir($newdir)){
@@ -28,14 +39,13 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 			return False;
 	}
 
-
 	if (class_exists('Imagick')) # Imagick
-		if (thumbcache_im($pathfile, $newf, $width, $height, $type))
-			return $link;
+		if (thumbcache_im($file, $newf, $width, $height, $type))
+			return $result;
 
 	if (extension_loaded('gd')) # gd
-		if (thumbcache_gd($pathfile, $newf, $width, $height, $type))
-			return $link;
+		if (thumbcache_gd($file, $newf, $width, $height, $type))
+			return $result;
 
 	return '';
 
@@ -43,14 +53,15 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 		
 
 
-/*
+/**
 *
 */
 function thumbcache_im($src, $newf, $width, $height, $type) {
 		
-	$im = new Imagick();
+	$handle = fopen($src, 'rb');
 
-	$im->readImage($src);
+	$im = new Imagick();
+	$im->readImageFile($handle); exit;
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
@@ -86,6 +97,9 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 }	
 
 
+/**
+*
+*/
 function thumbcache_gd($src, $newf, $width, $height) {
 	return False;
 }		
