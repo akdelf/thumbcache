@@ -1,0 +1,9 @@
+{
+    "name": "akdelf / thumbcache",
+    "description": "thumbcache jpeg",
+    "homepage": "https://github.com/akdelf/thumbcache",
+    "keywords": ["thumb images"],
+    "autoload": {
+        "files": ["thumbcache.php"]
+    }
+}
