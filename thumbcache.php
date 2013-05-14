@@ -3,11 +3,11 @@
 
 /**
 *
-*
 */
 function thumbcache($file, $width, $height, $type = 'crop') {
 
 	/**
+	* IMAGECACHE, IMAGELINK 
 	* $_SERVER['DOCUMENT_ROOT']
 	* $_SERVER['HTTP_HOST']
 	*/	
@@ -17,12 +17,13 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 	elseif (!file_exists($file)) # local file
 		return '';
 
-	$newfile = $width.'/'.$height.'/'.md5($file);	
+	$newfile = $width.'/'.$height.'/'.md5($file);
 
+	
 	if (defined('IMGCACHE')) {
 		if (substr($file, 0, 4) == 'http')
-			$newf = IMGCACHE.$newfile;
-	}	
+			$newf = IMGCACHE.$newfile.'.jpg';
+	}
 
 	if (defined('IMGLINK'))
 		$result = IMGLINK.$newfile; # return link to preview
@@ -61,7 +62,7 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 	$handle = fopen($src, 'rb');
 
 	$im = new Imagick();
-	$im->readImageFile($handle); exit;
+	$im->readImageFile($handle); 
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
