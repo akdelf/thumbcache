@@ -48,9 +48,6 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 		if (thumbcache_gd($file, $newf, $width, $height, $type))
 			return $result;
 
-		if (thumbcache_gd($file, $newf, $width, $height, $type))
-			return $result;	
-
 	return '';
 
 }	
