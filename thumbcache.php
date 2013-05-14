@@ -48,6 +48,9 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 		if (thumbcache_gd($file, $newf, $width, $height, $type))
 			return $result;
 
+		if (thumbcache_gd($file, $newf, $width, $height, $type))
+			return $result;	
+
 	return '';
 
 }	
@@ -101,9 +104,54 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 /**
 *
 */
-function thumbcache_gd($src, $newf, $width, $height) {
-	return False;
-}		
+function thumbcache_gd($src, $newf, $thumb_width, $thumb_height) {
+	
+	$image_info = getimagesize($src);
+	$image = imagecreatefromJPEG($src);
+
+	$image_width = imagesx($image);
+    $image_height = imagesy($image);
 
 
+     if ($max_size) {
+        if ($image_width < $image_height) {
+            $thumb_height = $max_size;
+            $thumb_width =
+                round($max_size * $image_width / $image_height);
+        }
+        else {
+            $thumb_width = $max_size;
+            $thumb_height =
+                round($max_size * $image_height / $image_width);
+        }
+    }
+
+    //задана только ширина
+    elseif ($thumb_width && !$thumb_height) {
+        $thumb_height =
+            round($thumb_width * $image_height / $image_width);
+    }
+
+    //задана только высота
+    elseif (!$thumb_width && $thumb_height) {
+        $thumb_width =
+            round($thumb_height * $image_width / $image_height);
+    }
+
+    //не задан ни один из размеров
+    else {
+        $thumb_width = $image_width;
+        $thumb_height = $image_height;
+    }
+
+    $thumb = imagecreatetruecolor($thumb_width, $thumb_height);
+    imagecopyresampled($thumb, $image, 0, 0, 0, 0,
+        $thumb_width, $thumb_height, $image_width, $image_height);
+
+    imagejpeg($thumb, $newf);
+
+
+	
+
+}    
 
