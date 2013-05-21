@@ -11,25 +11,24 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 	* $_SERVER['DOCUMENT_ROOT']
 	* $_SERVER['HTTP_HOST']
 	*/	
-	
+
 	if (substr($file, 0, 4) == 'http') # http file
-		$newfile = str_replace('http://', '', $newfile);
+		$newfile = str_replace(array('http://', 'http://www.'), '', $newfile);
 	elseif (!file_exists($file)) # local file
 		return '';
 
-	$newfile = $width.'/'.$height.'/'.md5($file);
+	$newfile = $width.'/'.$height.'/'.md5($file).'.jpg';
 
+
+	if (defined('IMGCACHE'))
+		$newf = IMGCACHE.$newfile;
 	
-	if (defined('IMGCACHE')) {
-		if (substr($file, 0, 4) == 'http')
-			$newf = IMGCACHE.$newfile.'.jpg';
-	}
 
 	if (defined('IMGLINK'))
 		$result = IMGLINK.$newfile; # return link to preview
 	else
 		$result = $newf; # return path to thumbnail file
-	
+
 	if (file_exists($newf) and filectime($newf) > filectime($file))
 		return $result;
 
@@ -51,14 +50,14 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 	return '';
 
 }	
-		
+
 
 
 /**
 *
 */
 function thumbcache_im($src, $newf, $width, $height, $type) {
-		
+
 	$handle = fopen($src, 'rb');
 
 	$im = new Imagick();
@@ -87,8 +86,7 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 			$im->resizeImage($new_width, $new_height, imagick::FILTER_LANCZOS, 1); 
 		}
 	}	
-
-
+	
 	if ($im->writeImage($newf))
 		return True;
 
@@ -102,7 +100,7 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 *
 */
 function thumbcache_gd($src, $newf, $thumb_width, $thumb_height) {
-	
+
 	$image_info = getimagesize($src);
 	$image = imagecreatefromJPEG($src);
 
@@ -148,7 +146,6 @@ function thumbcache_gd($src, $newf, $thumb_width, $thumb_height) {
     imagejpeg($thumb, $newf);
 
 
-	
+
 
 }    
-
