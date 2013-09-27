@@ -1,6 +1,4 @@
 <?php
-
-
 /**
 *
 */
@@ -12,25 +10,27 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 	* $_SERVER['HTTP_HOST']
 	*/	
 
-	if (substr($file, 0, 4) == 'http') # http file
+	/*if (substr($file, 0, 4) == 'http') # http file
 		$newfile = str_replace(array('http://', 'http://www.'), '', $newfile);
 	elseif (!file_exists($file)) # local file
-		return '';
+		return '';*/
 
 	$newfile = $width.'/'.$height.'/'.md5($file).'.jpg';
 
-
 	if (defined('IMGCACHE'))
 		$newf = IMGCACHE.$newfile;
-	
 
 	if (defined('IMGLINK'))
 		$result = IMGLINK.$newfile; # return link to preview
 	else
 		$result = $newf; # return path to thumbnail file
 
-	if (file_exists($newf) and filectime($newf) > filectime($file))
-		return $result;
+	if (file_exists($newf)) { // work preview only
+		if (file_exists($file) and filectime($newf) > filectime($file))
+		else	
+			return $result;
+	}
+
 
 	$newdir = dirname($newf);
 
@@ -39,13 +39,15 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 			return False;
 	}
 
-	if (class_exists('Imagick')) # Imagick
+	if (class_exists('Imagick')){ # Imagick
 		if (thumbcache_im($file, $newf, $width, $height, $type))
 			return $result;
 
 	if (extension_loaded('gd')) # gd
 		if (thumbcache_gd($file, $newf, $width, $height, $type))
 			return $result;
+
+	if ($result)
 
 	return '';
 
