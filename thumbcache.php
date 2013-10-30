@@ -27,6 +27,7 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 
 	if (file_exists($newf)) { // work preview only
 		if (file_exists($file) and filectime($newf) > filectime($file))
+			return False;
 		else	
 			return $result;
 	}
