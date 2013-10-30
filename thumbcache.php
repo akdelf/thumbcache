@@ -40,7 +40,7 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 			return False;
 	}
 
-	if (class_exists('Imagick')){ # Imagick
+	if (class_exists('Imagick')) # Imagick
 		if (thumbcache_im($file, $newf, $width, $height, $type))
 			return $result;
 
@@ -148,7 +148,4 @@ function thumbcache_gd($src, $newf, $thumb_width, $thumb_height) {
 
     imagejpeg($thumb, $newf);
 
-
-
-
-}    
+}
