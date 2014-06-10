@@ -4,6 +4,9 @@
 */
 function thumbcache($file, $width, $height, $type = 'crop') {
 
+	
+
+
 	/**
 	* IMAGECACHE, IMAGELINK 
 	* $_SERVER['DOCUMENT_ROOT']
@@ -17,40 +20,53 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 
 	$newfile = $width.'/'.$height.'/'.md5($file).'.jpg';
 
+
 	if (defined('IMGCACHE'))
 		$newf = IMGCACHE.$newfile;
 
+	
 	if (defined('IMGLINK'))
 		$result = IMGLINK.$newfile; # return link to preview
 	else
 		$result = $newf; # return path to thumbnail file
 
-	if (file_exists($newf)) { // work preview only
+
+	
+	
+
+	
+
+	/*if (file_exists($newf)) { // work preview only
 		if (file_exists($file) and filectime($newf) > filectime($file))
 			return False;
 		else	
 			return $result;
-	}
+	}*/
 
 
+	
 	$newdir = dirname($newf);
 
+
 	if (!is_dir($newdir)){
-		if (!mkdir($newdir, 0775, True))
-			return False;
+		$old = umask(0);
+		mkdir($newdir,  0777, True);
+		chmod($newdir, 0777);
+		umask($old);
 	}
 
+	
 	if (class_exists('Imagick')) # Imagick
-		if (thumbcache_im($file, $newf, $width, $height, $type))
-			return $result;
+		$status = thumbcache_im($file, $newf, $width, $height, $type);
 
-	if (extension_loaded('gd')) # gd
-		if (thumbcache_gd($file, $newf, $width, $height, $type))
-			return $result;
+	//if (extension_loaded('gd')) # gd
+	//	$status = thumbcache_gd($file, $newf, $width, $height, $type);
 
-	if ($result)
-
-	return '';
+	if ($status) {
+		chmod($newf, 0777);
+		return $result;
+	}	
+	
 
 }	
 
@@ -90,10 +106,7 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 		}
 	}	
 	
-	if ($im->writeImage($newf))
-		return True;
-
-	return  False;
+	return $im->writeImage($newf);
 
 
 }	
@@ -146,6 +159,8 @@ function thumbcache_gd($src, $newf, $thumb_width, $thumb_height) {
     imagecopyresampled($thumb, $image, 0, 0, 0, 0,
         $thumb_width, $thumb_height, $image_width, $image_height);
 
-    imagejpeg($thumb, $newf);
+    return imagejpeg($thumb, $newf);
+
+
 
 }
