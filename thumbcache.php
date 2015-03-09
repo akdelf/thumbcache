@@ -2,7 +2,10 @@
 /**
 *
 */
-function thumbcache($file, $width, $height, $type = 'crop') {
+
+
+
+function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 
 	
 
@@ -18,34 +21,35 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 	elseif (!file_exists($file)) # local file
 		return '';*/
 
-	$newfile = $width.'/'.$height.'/'.md5($file).'.jpg';
+	
+	if ($save == '') { // default pub/images
+		$link = 'pub/images/preview/'.$width.'/'.$height.'/'.md5($file).'.jpg';
+		$save = $_SERVER['DOCUMENT_ROOT'].$link;
+	}
 
 
-	if (defined('IMGCACHE'))
-		$newf = IMGCACHE.$newfile;
+	if (file_exists($save)){
+		if (!file_exists($file))
+			return $link;
+		elseif (filectime($save) > filectime($file))
+			return $link;
+	}
 
 	
-	if (defined('IMGLINK'))
-		$result = IMGLINK.$newfile; # return link to preview
-	else
-		$result = $newf; # return path to thumbnail file
-
-
+	if (!file_exists($file)) {
 	
+		$sdir = dirname($file);
 	
+		if (!is_dir($sdir))
+		 	$file = $_SERVER['DOCUMENT_ROOT'].$file;
 
+		if (!file_exists($file) and file_exists($save))
+			return; 
 	
-
-	/*if (file_exists($newf)) { // work preview only
-		if (file_exists($file) and filectime($newf) > filectime($file))
-			return False;
-		else	
-			return $result;
-	}*/
+	}
 
 
-	
-	$newdir = dirname($newf);
+	$newdir = dirname($save);
 
 
 	if (!is_dir($newdir)){
@@ -55,16 +59,17 @@ function thumbcache($file, $width, $height, $type = 'crop') {
 		umask($old);
 	}
 
+	$status = thumbcache_gd($file, $save, $width, $height, $type);
 	
-	if (class_exists('Imagick')) # Imagick
-		$status = thumbcache_im($file, $newf, $width, $height, $type);
+	/*if (class_exists('Imagick')) # Imagick
+		$status = thumbcache_im($file, $save, $width, $height, $type);*/
 
 	//if (extension_loaded('gd')) # gd
 	//	$status = thumbcache_gd($file, $newf, $width, $height, $type);
 
 	if ($status) {
-		chmod($newf, 0777);
-		return $result;
+		chmod($save, 0777);
+		return $link;
 	}	
 	
 
@@ -115,52 +120,47 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 /**
 *
 */
-function thumbcache_gd($src, $newf, $thumb_width, $thumb_height) {
+function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop') {
 
-	$image_info = getimagesize($src);
-	$image = imagecreatefromJPEG($src);
-
-	$image_width = imagesx($image);
-    $image_height = imagesy($image);
-
-
-     if ($max_size) {
-        if ($image_width < $image_height) {
-            $thumb_height = $max_size;
-            $thumb_width =
-                round($max_size * $image_width / $image_height);
-        }
-        else {
-            $thumb_width = $max_size;
-            $thumb_height =
-                round($max_size * $image_height / $image_width);
-        }
+	
+	ini_set("gd.jpeg_ignore_warning", 1); // иначе на некотоых jpeg-файлах не работает
+    
+    list($oldwidth, $oldheight, $type) = getimagesize($src);
+    
+    switch ($type) {
+        case IMAGETYPE_JPEG: $typestr = 'jpeg'; break;
+        case IMAGETYPE_GIF: $typestr = 'gif' ;break;
+        case IMAGETYPE_PNG: $typestr = 'png'; break;
     }
-
-    //задана только ширина
-    elseif ($thumb_width && !$thumb_height) {
-        $thumb_height =
-            round($thumb_width * $image_height / $image_width);
+    
+    $function = "imagecreatefrom$typestr";
+    $src_resource = $function($src);
+    
+    if (!$newheight) { $newheight = round($newwidth * $oldheight/$oldwidth); }
+    elseif (!$newwidth) { $newwidth = round($newheight * $oldwidth/$oldheight); }
+    $destination_resource = imagecreatetruecolor($newwidth,$newheight);
+    
+    imagecopyresampled($destination_resource, $src_resource, 0, 0, 0, 0, $newwidth, $newheight, $oldwidth, $oldheight);
+    
+    if ($type = 2) { # jpeg
+        imageinterlace($destination_resource, 1); // чересстрочное формирование изображение
+        $result = imagejpeg($destination_resource, $newf);      
     }
-
-    //задана только высота
-    elseif (!$thumb_width && $thumb_height) {
-        $thumb_width =
-            round($thumb_height * $image_width / $image_height);
+    else { # gif, png
+        $function = "image$typestr";
+        $result =  $function($destination_resource, $destination_path);
     }
+    
+    imagedestroy($destination_resource);
+    imagedestroy($src_resource);
 
-    //не задан ни один из размеров
-    else {
-        $thumb_width = $image_width;
-        $thumb_height = $image_height;
-    }
-
-    $thumb = imagecreatetruecolor($thumb_width, $thumb_height);
-    imagecopyresampled($thumb, $image, 0, 0, 0, 0,
-        $thumb_width, $thumb_height, $image_width, $image_height);
-
-    return imagejpeg($thumb, $newf);
-
-
+    return $result;
 
 }
+
+
+
+
+
+
+
