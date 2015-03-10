@@ -43,8 +43,8 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 		if (!is_dir($sdir))
 		 	$file = $_SERVER['DOCUMENT_ROOT'].$file;
 
-		if (!file_exists($file) and file_exists($save))
-			return; 
+		if (!file_exists($file))
+			return ''; 
 	
 	}
 
