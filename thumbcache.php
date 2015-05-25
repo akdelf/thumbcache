@@ -24,7 +24,7 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	
 	if ($save == '') { // default pub/images
 		$link = 'pub/images/preview/'.$width.'/'.$height.'/'.md5($file).'.jpg';
-		$save = $_SERVER['DOCUMENT_ROOT'].$link;
+		$save = $_SERVER['DOCUMENT_ROOT'].'/'.$link;
 	}
 
 
@@ -36,7 +36,7 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	}
 
 	
-	if (!file_exists($file)) {
+	/*if (!file_exists($file)) {
 	
 		$sdir = dirname($file);
 	
@@ -46,7 +46,7 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 		if (!file_exists($file))
 			return ''; 
 	
-	}
+	}*/
 
 
 	$newdir = dirname($save);
@@ -82,6 +82,7 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 */
 function thumbcache_im($src, $newf, $width, $height, $type) {
 
+	
 	$handle = fopen($src, 'rb');
 
 	$im = new Imagick();
@@ -123,10 +124,11 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop') {
 
 	
+	
 	ini_set("gd.jpeg_ignore_warning", 1); // иначе на некотоых jpeg-файлах не работает
     
     list($oldwidth, $oldheight, $type) = getimagesize($src);
-    
+
     switch ($type) {
         case IMAGETYPE_JPEG: $typestr = 'jpeg'; break;
         case IMAGETYPE_GIF: $typestr = 'gif' ;break;
@@ -134,7 +136,7 @@ function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop'
     }
     
     $function = "imagecreatefrom$typestr";
-    $src_resource = $function($src);
+   $src_resource = $function($src);
     
     if (!$newheight) { $newheight = round($newwidth * $oldheight/$oldwidth); }
     elseif (!$newwidth) { $newwidth = round($newheight * $oldwidth/$oldheight); }
