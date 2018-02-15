@@ -3,10 +3,11 @@
     "description": "thumbcache jpeg",
     "type": "library",
     "homepage": "https://github.com/akdelf/thumbcache",
+    "version">": "0.1",
     "license": "MIT",
     "keywords": ["thumb images"],
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=5.2.0"
     },
     "autoload": {
         "files": ["thumbcache.php"]
