@@ -16,23 +16,24 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	* $_SERVER['HTTP_HOST']
 	*/	
 
-	/*if (substr($file, 0, 4) == 'http') # http file
+	if (substr($file, 0, 4) == 'http') # http file
 		$newfile = str_replace(array('http://', 'http://www.'), '', $newfile);
 	elseif (!file_exists($file)) # local file
-		return '';*/
+		return '';
 
 	
 	if ($save == '') { // default pub/images
 		$link = 'pub/images/preview/'.$width.'/'.$height.'/'.md5($file).'.jpg';
+		$httplink = IMGLINK.'/'.$link;
 		$save = $_SERVER['DOCUMENT_ROOT'].'/'.$link;
 	}
 
 
 	if (file_exists($save)){
 		if (!file_exists($file))
-			return $link;
+			return $httplink;
 		elseif (filectime($save) > filectime($file))
-			return $link;
+			return $httplink;
 	}
 
 	
@@ -69,7 +70,7 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 
 	if ($status) {
 		chmod($save, 0777);
-		return $link;
+		return $httplink;
 	}	
 	
 
