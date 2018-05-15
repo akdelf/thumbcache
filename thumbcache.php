@@ -134,6 +134,7 @@ function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop'
         case IMAGETYPE_JPEG: $typestr = 'jpeg'; break;
         case IMAGETYPE_GIF: $typestr = 'gif' ;break;
         case IMAGETYPE_PNG: $typestr = 'png'; break;
+	default: return '';
     }
     
     $function = "imagecreatefrom$typestr";
