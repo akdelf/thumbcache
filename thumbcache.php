@@ -139,11 +139,11 @@ function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop'
     
     $function = "imagecreatefrom$typestr";
     
-    if (function_exists($function))		
-    	$src_resource = $function($src);
-    else
-	 return '';
+    if (!function_exists($function))
+    	return '';	
     
+    $src_resource = $function($src);
+   
     if (!$newheight) { $newheight = round($newwidth * $oldheight/$oldwidth); }
     elseif (!$newwidth) { $newwidth = round($newheight * $oldwidth/$oldheight); }
     $destination_resource = imagecreatetruecolor($newwidth,$newheight);
