@@ -7,10 +7,7 @@
 
 function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 
-	
-
-
-	/**
+    /**
 	* IMAGECACHE, IMAGELINK 
 	* $_SERVER['DOCUMENT_ROOT']
 	* $_SERVER['HTTP_HOST']
@@ -60,19 +57,17 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 		umask($old);
 	}
 
-	$status = thumbcache_gd($file, $save, $width, $height, $type);
+	//$status = thumbcache_gd($file, $save, $width, $height, $type);
 	
-	/*if (class_exists('Imagick')) # Imagick
-		$status = thumbcache_im($file, $save, $width, $height, $type);*/
+	if (class_exists('Imagick')) # Imagick
+		$status = thumbcache_im($file, $save, $width, $height, $type);
 
-	//if (extension_loaded('gd')) # gd
-	//	$status = thumbcache_gd($file, $newf, $width, $height, $type);
+	if (extension_loaded('gd')) # gd
+		$status = thumbcache_gd($file, $newf, $width, $height, $type);
 
-	if ($status) {
-		chmod($save, 0777);
-		return $httplink;
-	}	
-	
+
+	return $httplink;
+
 
 }	
 
@@ -83,11 +78,14 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 */
 function thumbcache_im($src, $newf, $width, $height, $type) {
 
-	
-	$handle = fopen($src, 'rb');
-
-	$im = new Imagick();
-	$im->readImageFile($handle); 
+    if (substr($src, 0, 4) == 'http'){
+    	$simage = file_get_contents($src);
+        $im = new Imagick();
+        $im->readimageblob($simage);   
+    }
+    else {
+        $im = new Imagick($src);
+    }
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
@@ -113,7 +111,12 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 		}
 	}	
 	
-	return $im->writeImage($newf);
+	$result = $im->writeImage($newf);
+	$im->destroy();
+
+	
+
+	return $result;
 
 
 }	
