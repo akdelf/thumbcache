@@ -3,8 +3,6 @@
 *
 */
 
-
-
 function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 
     /**
@@ -61,12 +59,14 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	
 	if (class_exists('Imagick')) # Imagick
 		$status = thumbcache_im($file, $save, $width, $height, $type);
+	elseif (extension_loaded('gd')) # gd
+		$status = thumbcache_gd($file, $save, $width, $height, $type);
 
-	if (extension_loaded('gd')) # gd
-		$status = thumbcache_gd($file, $newf, $width, $height, $type);
+	if ($status)
+		return $httplink;
 
 
-	return $httplink;
+	return '';
 
 
 }	
@@ -78,6 +78,8 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 */
 function thumbcache_im($src, $newf, $width, $height, $type) {
 
+	
+
     if (substr($src, 0, 4) == 'http'){
     	$simage = file_get_contents($src);
         $im = new Imagick();
@@ -86,6 +88,7 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
     else {
         $im = new Imagick($src);
     }
+
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
@@ -111,7 +114,9 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 		}
 	}	
 	
+
 	$result = $im->writeImage($newf);
+
 	$im->destroy();
 
 	
@@ -168,6 +173,7 @@ function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop'
     return $result;
 
 }
+
 
 
 
