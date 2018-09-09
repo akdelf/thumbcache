@@ -16,11 +16,23 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	elseif (!file_exists($file)) # local file
 		return '';
 
+
+	if (defined(IMGCACHE)) {
+        $sfolder = IMGCACHE;
+    }
+    else
+        $sfolder = $_SERVER['DOCUMENT_ROOT'].'/';
+
+    if (defined(IMGLINK))
+        $httplink = IMGLINK;
+    else
+        $httplink = '';
+
 	
 	if ($save == '') { // default pub/images
 		$link = 'pub/images/preview/'.$width.'/'.$height.'/'.md5($file).'.jpg';
-		$httplink = IMGLINK.'/'.$link;
-		$save = $_SERVER['DOCUMENT_ROOT'].'/'.$link;
+		$httplink .= $link;
+		$save = $sfolder.$link;
 	}
 
 
