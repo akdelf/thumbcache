@@ -104,8 +104,8 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
-	elseif ($type == 'fit')
-		$im->thumbnailImage($width, $height, true);
+	elseif ($type == 'scale')
+        $im->scaleImage($width, $height, true);
 	elseif ($type == 'proportion') {	
 		$m_width = (float) $width;
 		$m_height = (float) $height;
