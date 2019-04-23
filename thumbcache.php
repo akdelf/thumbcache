@@ -72,7 +72,7 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	if (class_exists('Imagick')) # Imagick
 		$status = thumbcache_im($file, $save, $width, $height, $type);
 	elseif (extension_loaded('gd')) # gd
-		$status = thumbcache_gd($file, $save, $width, $height, $type);
+    	$status = thumbcache_gd($file, $save, $width, $height, $type);
 
 	if ($status)
 		return $httplink;
@@ -90,7 +90,6 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 */
 function thumbcache_im($src, $newf, $width, $height, $type) {
 
-	
 
     if (substr($src, 0, 4) == 'http'){
     	$simage = file_get_contents($src);
@@ -104,9 +103,16 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
-	elseif ($type == 'scale')
-        $im->scaleImage($width, $height, true);
-	elseif ($type == 'proportion') {	
+
+	elseif ($type == 'fit')
+		$im->thumbnailImage($width, $height, true);
+
+	elseif ($type == 'width'){
+        $height = null;
+        $im->thumbnailImage($width, $height);
+    }
+
+    elseif ($type == 'proportion') {
 		$m_width = (float) $width;
 		$m_height = (float) $height;
 		$curr_width = $im->getImageWidth();
@@ -184,6 +190,13 @@ function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop'
 
     return $result;
 
+}
+
+
+function thumbcache_resizeToWidth($width) {
+    $ratio = $width / $this->getWidth();
+    $height = $this->getheight() * $ratio;
+    $this->resize($width,$height);
 }
 
 
