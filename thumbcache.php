@@ -68,11 +68,15 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 	}
 
 	//$status = thumbcache_gd($file, $save, $width, $height, $type);
-	
-	if (class_exists('Imagick')) # Imagick
+
+    if (extension_loaded("vips")){
+        $status = thumbcache_vips($file, $save, $width, $height, $type);
+    }
+
+    /*elseif (class_exists('Imagick')) # Imagick
 		$status = thumbcache_im($file, $save, $width, $height, $type);
 	elseif (extension_loaded('gd')) # gd
-    	$status = thumbcache_gd($file, $save, $width, $height, $type);
+    	$status = thumbcache_gd($file, $save, $width, $height, $type);*/
 
 	if ($status)
 		return $httplink;
@@ -85,26 +89,130 @@ function thumbcache($file, $width, $height = null, $save = '', $type = 'crop') {
 
 
 
+function thumbcache_manager($file, $params = array(), $fsave = null, $return = False){
+
+
+    $currlib = thumbcache_findlib();
+    $tfunc = 'thumbcache_'.$currlib;
+
+    if ($fsave !== ''){
+
+        $newdir = dirname($fsave);
+
+        if (!is_dir($newdir)){
+            $old = umask(0);
+            mkdir($newdir,  0777, True);
+            chmod($newdir, 0777);
+            umask($old);
+        }
+
+    }
+
+    $opt = $params;
+
+    if (!isset($params['height'])){
+        $opt['height'] = null;
+    }
+
+    if (function_exists($tfunc)) {
+         return $tfunc($file, $opt, $fsave, $return);
+    }
+    else
+        return False;
+
+}
+
+
+
+
+/**
+ * @return string current image libary in system
+ */
+function thumbcache_findlib(){
+
+    if (extension_loaded("vips"))
+        return 'vips';
+
+    elseif (class_exists('Imagick'))
+        return 'imagick';
+
+    elseif (class_exists('gd'))
+        return 'gd';
+
+}
+
+
+
+function thumbcache_vips($src, $opt = array(), $fsave = null, $return = true) {
+
+    $width = $opt['width'];
+    unset($opt['width']);
+
+    if (isset($opt['crop']))
+        $opt['crop'] = (int)$opt['crop'];
+    else
+        $opt['crop'] = 0;
+
+
+    $img = vips_call('thumbnail', null, $src, $width, $opt)['out'];
+
+    if($img === null) {
+        echo vips_error_buffer()."\n";
+        return False;
+    }
+
+    if ($fsave !== null) {
+        vips_image_write_to_file($img, $fsave);
+        $result  = True;
+    }
+
+
+    if ($return) {
+        $ext = pathinfo($src, PATHINFO_EXTENSION);
+        $result = vips_image_write_to_buffer($img, '.'.$ext)["buffer"];
+    }
+
+    return $result;
+
+}
+
+
 /**
 *
 */
-function thumbcache_im($src, $newf, $width, $height, $type) {
+function thumbcache_imagick($src, $opt = array(), $fsave = null, $return = true) {
 
 
-    if (substr($src, 0, 4) == 'http'){
+    /** if (substr($src, 0, 4) == 'http'){
     	$simage = file_get_contents($src);
         $im = new Imagick();
-        $im->readimageblob($simage);   
+        $im->readimageblob($simage);
     }
     else {
         $im = new Imagick($src);
+    }*/
+
+    $width = $opt['width'];
+
+    if (isset($opt['height'])){
+        $height = $opt['height'];
+    }
+    else {
+        $height = null;
     }
 
+    if ($opt['crop'] == true)
+        $type = 'crop';
+
+
+    $im = new Imagick($src);
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
+	else
+        $im->thumbnailImage($width, $height, true);
 
-	elseif ($type == 'fit')
+	/**elseif ($type == 'fit')
 		$im->thumbnailImage($width, $height, true);
 
 	elseif ($type == 'width'){
@@ -130,25 +238,28 @@ function thumbcache_im($src, $newf, $width, $height, $type) {
 			}
 			$im->resizeImage($new_width, $new_height, imagick::FILTER_LANCZOS, 1); 
 		}
-	}	
-	
+	}*/
 
-	$result = $im->writeImage($newf);
+
+    if ($fsave !== null) {
+        $result = $im->writeImage($fsave);
+    }
+
+    if ($return) {
+        $result = $im->getImageBlob();
+    }
 
 	$im->destroy();
 
-	
-
 	return $result;
 
-
-}	
+}
 
 
 /**
 *
 */
-function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop') {
+function thumbcache_gd($src, $width, $height = null, $fsave = null, $type = 'crop') {
 
 	
 	
@@ -178,7 +289,7 @@ function thumbcache_gd($src, $newf, $newwidth, $newheight = null, $type = 'crop'
     
     if ($type = 2) { # jpeg
         imageinterlace($destination_resource, 1); // чересстрочное формирование изображение
-        $result = imagejpeg($destination_resource, $newf);      
+        $result = imagejpeg($destination_resource, $fsave);
     }
     else { # gif, png
         $function = "image$typestr";
