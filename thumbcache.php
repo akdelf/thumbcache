@@ -115,7 +115,17 @@ function thumbcache_manager($file, $params = array(), $fsave = null, $return = F
     }
 
     if (function_exists($tfunc)) {
-         return $tfunc($file, $opt, $fsave, $return);
+         $result =  $tfunc($file, $opt, $fsave, $return);
+
+         if ($fsave !== null)
+             file_put_contents($fsave, $result);
+
+         if ($return)
+             return $result;
+         else
+             return true;
+
+
     }
     else
         return False;
@@ -161,16 +171,10 @@ function thumbcache_vips($src, $opt = array(), $fsave = null, $return = true) {
         return False;
     }
 
-    if ($fsave !== null) {
-        vips_image_write_to_file($img, $fsave);
-        $result  = True;
-    }
 
+    $ext = pathinfo($src, PATHINFO_EXTENSION);
+    $result = vips_image_write_to_buffer($img, '.'.$ext)["buffer"];
 
-    if ($return) {
-        $ext = pathinfo($src, PATHINFO_EXTENSION);
-        $result = vips_image_write_to_buffer($img, '.'.$ext)["buffer"];
-    }
 
     return $result;
 
@@ -241,14 +245,8 @@ function thumbcache_imagick($src, $opt = array(), $fsave = null, $return = true)
 	}*/
 
 
-    if ($fsave !== null) {
-        $result = $im->writeImage($fsave);
-    }
 
-    if ($return) {
-        $result = $im->getImageBlob();
-    }
-
+	$result =  $im->getImageBlob();
 	$im->destroy();
 
 	return $result;
