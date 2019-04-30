@@ -213,7 +213,9 @@ function thumbcache_imagick($src, $opt = array(), $fsave = null, $return = true)
 
 	if ($type == 'crop')
 		$im->cropThumbnailImage($width, $height);
-	else
+	elseif ($height == null)
+        $im->thumbnailImage($width, $height);
+    else
         $im->thumbnailImage($width, $height, true);
 
 	/**elseif ($type == 'fit')
