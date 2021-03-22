@@ -2,7 +2,7 @@
     "name": "masterforweb/thumbcache",
     "description": "thumbcache jpeg",
     "type": "library",
-    "homepage": "https://github.com/akdelf/thumbcache",
+    "homepage": "https://github.com/masterforweb/thumbcache",
     "license": "MIT",
     "keywords": ["thumb images"],
     "require": {
